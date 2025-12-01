@@ -128,8 +128,8 @@ const SeqeraApp = () => {
       }
 
       const apiUrl = window.location.hostname === 'localhost'
-        ? '/api'
-        : config.seqeraApi;
+        ? 'http://localhost:3001/api'
+        : '/api';
 
       const response = await fetch(
         `${apiUrl}/workflow?offset=0&max=25&workspaceId=${config.workspaceId}&attributes=labels,minimal`,

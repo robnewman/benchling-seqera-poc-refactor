@@ -1,10 +1,12 @@
-name: seqera-pipeline-launcher
-version: 1.0.0
-description: Launch Nextflow pipelines from Seqera Platform directly within Benchling
-icon: https://your-domain.com/icon.png
+manifestVersion: 1
+info:
+  name: seqera-platform
+  version: 0.0.1
+  description: Launch Nextflow pipelines from Seqera Platform directly within Benchling
+  supportEmail: product@seqera.io
 
 # Note: This manifest.yaml is for reference only.
-# Benchling Connect apps are registered through the Benchling Admin UI,
+# Benchling Apps are registered through the Benchling Admin UI,
 # not via a CLI or manifest file upload.
 #
 # Use this file as a guide for what configuration fields to create

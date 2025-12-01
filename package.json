@@ -1,7 +1,7 @@
 {
-  "name": "benchling-seqera-app",
+  "name": "benchling-seqera-poc-refactor",
   "version": "1.0.0",
-  "description": "Benchling Connect app to launch Nextflow pipelines from Seqera Platform",
+  "description": "Benchling App to launch Nextflow pipelines from Seqera Platform and get workflow run status",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",

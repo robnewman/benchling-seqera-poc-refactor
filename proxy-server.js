@@ -118,9 +118,9 @@ app.all('/api/*', async (req, res) => {
   }
 });
 
-const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`\n🚀 Proxy server running on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0',() => {
+  console.log(`\n🚀 Proxy server running on port ${PORT}`);
   console.log(`📡 Forwarding requests to ${SEQERA_API}`);
   console.log(`🔧 Node version: ${process.version}\n`);
 });

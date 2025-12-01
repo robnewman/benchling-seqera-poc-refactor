@@ -48,7 +48,7 @@ const SeqeraApp = () => {
     try {
       const baseUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001/api'
-        : apiUrl;
+        : '/api';  // Use relative URL to hit your proxy
 
       const orgsResponse = await fetch(`${baseUrl}/orgs`, {
         headers: {
@@ -110,7 +110,7 @@ const SeqeraApp = () => {
       }
 
       const apiUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:3001/api'
+        ? '/api'
         : config.seqeraApi;
 
       const response = await fetch(
@@ -148,7 +148,7 @@ const SeqeraApp = () => {
 
       const apiUrl = window.location.hostname === 'localhost'
         ? 'http://localhost:3001/api'
-        : config.seqeraApi;
+        : '/api';  // Use relative URL to hit your proxy
 
       const response = await fetch(
         `${apiUrl}/pipelines?workspaceId=${config.workspaceId}`,

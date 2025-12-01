@@ -17,6 +17,7 @@ const SeqeraApp = () => {
 
   useEffect(() => {
     if (window.benchling) {
+      // Benchling environment
       window.benchling.getAppConfig().then(async (appConfig) => {
         let workspaceId = null;
         if (appConfig.organizationName && appConfig.workspaceName) {
@@ -34,6 +35,23 @@ const SeqeraApp = () => {
           seqeraApi: appConfig.seqeraApi || 'https://api.cloud.seqera.io'
         });
       });
+    } else {
+      // Non-Benchling environment (like App Runner)
+      // Option 1: Use environment variables
+      const seqeraToken = process.env.REACT_APP_SEQERA_TOKEN;
+      const workspaceId = process.env.REACT_APP_WORKSPACE_ID;
+      
+      if (seqeraToken && workspaceId) {
+        setConfig({
+          seqeraToken: seqeraToken,
+          workspaceId: workspaceId,
+          seqeraApi: 'https://api.cloud.seqera.io'
+        });
+      } else {
+        // Option 2: Show a configuration form
+        setError('Please configure your Seqera credentials');
+        setLoading(false);
+      }
     }
   }, []);
 

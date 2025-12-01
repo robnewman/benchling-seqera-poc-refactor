@@ -5,6 +5,8 @@ build:
     build:
       - echo "Installing dependencies..."
       - npm ci --only=production
+      - npm install
+      - npm run build
   env:
     - name: REACT_APP_SEQERA_TOKEN
       value: "eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw=="
@@ -12,7 +14,7 @@ build:
       value: "73343830402249"
 run:
   runtime-version: 22.17.0
-  command: npm proxy-server.js
+  command: node proxy-server.js
   network:
     port: 3000
     env: PORT

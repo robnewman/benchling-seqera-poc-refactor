@@ -5,9 +5,14 @@ build:
     build:
       - echo "Installing dependencies..."
       - npm ci --only=production
+  env:
+    - name: REACT_APP_SEQERA_TOKEN
+      value: "eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw=="
+    - name: REACT_APP_WORKSPACE_ID
+      value: "73343830402249"
 run:
   runtime-version: 22.17.0
-  command: npm start
+  command: npm proxy-server.js
   network:
     port: 3000
     env: PORT

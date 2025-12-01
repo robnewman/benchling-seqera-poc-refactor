@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Seqera Pipeline Launcher - Benchling Connect App"
+    />
+    <title>Seqera Pipeline Launcher</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    
+    <!-- 
+      LOCAL DEVELOPMENT MOCK
+      Uncomment this section for local development only.
+      IMPORTANT: Comment this out or remove before deploying to production!
+    -->
+    <script>
+      // Mock Benchling API for local development
+      window.benchling = {
+        getAppConfig: () => Promise.resolve({
+          seqeraToken: 'eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw==',
+          organizationName: 'seqeralabs_robnewman_test',
+          workspaceName: 'studios_test',
+          seqeraApi: 'https://api.cloud.seqera.io'
+        })
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Table styling */
+table {
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+table tbody tr {
+  border: 1px solid #E5E7EB;
+  background-color: #FFFFFF;
+}
+
+table tbody tr:hover {
+  background-color: #F9FAFB;
+}
+
+/* Pipelines table - normal border on all sides */
+table tbody tr.pipeline-row {
+  border: 1px solid #E5E7EB;
+}
+
+/* Runs table - thick colored border on right side */
+table tbody tr.run-row {
+  border: 1px solid #E5E7EB;
+}
+
+table tbody tr.run-row.status-failed {
+  border-right: 4px solid #DC2626;
+}
+
+table tbody tr.run-row.status-succeeded {
+  border-right: 4px solid #16A34A;
+}
+
+table tbody tr.run-row.status-cancelled {
+  border-right: 4px solid #D1D5DB;
+}

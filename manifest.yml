@@ -1,0 +1,48 @@
+name: seqera-pipeline-launcher
+version: 1.0.0
+description: Launch Nextflow pipelines from Seqera Platform directly within Benchling
+icon: https://your-domain.com/icon.png
+
+# Note: This manifest.yaml is for reference only.
+# Benchling Connect apps are registered through the Benchling Admin UI,
+# not via a CLI or manifest file upload.
+#
+# Use this file as a guide for what configuration fields to create
+# when registering your app in Benchling Settings → Apps
+
+# Configuration fields to create in Benchling Admin UI:
+#
+# Field 1: seqeraToken
+#   - Type: Secret (encrypted)
+#   - Description: Your Seqera Platform API token
+#   - Required: Yes
+#   - Help text: Get from Seqera Platform → Settings → Your tokens
+#
+# Field 2: organizationName  
+#   - Type: String
+#   - Description: Your Seqera organization name
+#   - Required: Yes
+#   - Help text: Organization name from Seqera Platform (not the ID)
+#
+# Field 3: workspaceName
+#   - Type: String
+#   - Description: Your Seqera workspace name
+#   - Required: Yes
+#   - Help text: Workspace name from Seqera Platform (not the ID)
+#
+# Field 4: seqeraApi
+#   - Type: String
+#   - Description: Seqera API endpoint
+#   - Required: No
+#   - Default: https://api.cloud.seqera.io
+#   - Help text: Use default for Seqera Cloud, or your on-premises endpoint
+
+# App Canvas Settings (configure in Benchling UI):
+# - Type: iframe
+# - URL: https://your-deployed-app-url.com
+# - Height: 800px
+
+# App Metadata (enter in Benchling UI):
+# - Author: Your Organization
+# - Support Email: support@your-org.com
+# - Documentation URL: https://your-docs.com/seqera-app

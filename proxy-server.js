@@ -12,6 +12,66 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 const SEQERA_API = 'https://api.cloud.seqera.io';
 
+// ===== BENCHLING LIFECYCLE ENDPOINTS =====
+
+// Lifecycle endpoint - Benchling calls this when app is installed/updated
+app.post('/lifecycle', (req, res) => {
+  console.log('📱 Lifecycle event received:', req.body);
+  
+  const event = req.body;
+  
+  switch(event.type) {
+    case 'app.installed':
+      console.log('✅ App installed:', event);
+      break;
+    case 'app.uninstalled':
+      console.log('❌ App uninstalled:', event);
+      break;
+    case 'app.updated':
+      console.log('🔄 App updated:', event);
+      break;
+    default:
+      console.log('❓ Unknown lifecycle event:', event.type);
+  }
+  
+  // Always return 200 to acknowledge receipt
+  res.status(200).json({ success: true });
+});
+
+// Health check endpoint (Benchling may call this)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
+
+// Benchling config validation endpoint (optional but recommended)
+app.post('/validate', (req, res) => {
+  console.log('🔍 Config validation requested:', req.body);
+  
+  const config = req.body;
+  const errors = [];
+  
+  // Validate seqeraToken
+  if (!config.seqeraToken || config.seqeraToken.trim() === '') {
+    errors.push({ field: 'seqeraToken', message: 'Seqera API Token is required' });
+  }
+  
+  // Validate workspaceId OR org/workspace names
+  if (!config.workspaceId && (!config.organizationName || !config.workspaceName)) {
+    errors.push({ 
+      field: 'workspaceId', 
+      message: 'Either Workspace ID or Organization/Workspace names are required' 
+    });
+  }
+  
+  if (errors.length > 0) {
+    return res.status(400).json({ valid: false, errors });
+  }
+  
+  res.status(200).json({ valid: true });
+});
+
+// ===== EXISTING PROXY ENDPOINTS =====
+
 // Proxy all Seqera API requests
 app.all('/api/*', async (req, res) => {
   try {

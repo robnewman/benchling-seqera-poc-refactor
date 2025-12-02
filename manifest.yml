@@ -2,7 +2,7 @@ manifestVersion: 1
 
 info:
   name: seqera-platform-integration
-  version: 0.0.1
+  version: 0.0.3
   description: "Launch Nextflow pipelines from Seqera Platform directly within Benchling"
 
 configuration:
@@ -27,3 +27,17 @@ configuration:
   - name: seqeraApi
     type: text
     description: API endpoint URL
+
+features:
+  - name: Seqera App Canvas
+    id: seqera-app-canvas
+    type: CANVAS
+    locations:
+      - ENTRY
+      - ENTRY_TEMPLATE
+
+subscriptions:
+  deliveryMethod: WEBHOOK
+  messages:
+    - type: v2.canvas.userInteracted
+    - type: v2.canvas.created

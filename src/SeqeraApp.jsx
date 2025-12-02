@@ -15,10 +15,22 @@ const SeqeraApp = () => {
     seqeraApi: ''
   });
 
+    // ===== ADD THIS: Initialize Benchling SDK =====
+  useEffect(() => {
+    // Tell Benchling the app is ready
+    if (window.benchling && window.benchling.ready) {
+      window.benchling.ready();
+      console.log('✅ Benchling SDK initialized');
+    }
+  }, []);
+  // ===== END OF NEW CODE =====
+
   useEffect(() => {
     if (window.benchling) {
       // Benchling environment
       window.benchling.getAppConfig().then(async (appConfig) => {
+        console.log('📋 Benchling config received:', appConfig);
+
         let workspaceId = null;
         if (appConfig.organizationName && appConfig.workspaceName) {
           workspaceId = await resolveWorkspaceId(
@@ -34,6 +46,10 @@ const SeqeraApp = () => {
           workspaceId: workspaceId,
           seqeraApi: appConfig.seqeraApi || 'https://api.cloud.seqera.io'
         });
+      }).catch(err => {
+        console.error('❌ Failed to get Benchling config:', err);
+        setError('Failed to load configuration from Benchling');
+        setLoading(false);
       });
     } else {
       // Non-Benchling environment (like App Runner)

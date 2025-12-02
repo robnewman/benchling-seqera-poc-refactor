@@ -8,12 +8,6 @@ info:
   appUrl: https://wesz5f3bvp.eu-west-1.awsapprunner.com
   author: "Seqera Labs"
 
-entryPoints:
-  - type: NOTEBOOK_ENTRY
-    name: Seqera Pipelines
-    description: View and launch Seqera pipelines
-    path: /
-
 configuration:
   fields:
     - name: seqeraToken
@@ -47,7 +41,3 @@ configuration:
       description: API endpoint URL
       required: true
       default: https://api.cloud.seqera.io
-
-permissions:
-  - READ_NOTEBOOK_ENTRIES
-  - WRITE_NOTEBOOK_ENTRIES

@@ -17,10 +17,20 @@ const SeqeraApp = () => {
 
     // ===== ADD THIS: Initialize Benchling SDK =====
   useEffect(() => {
+    console.log('🔍 Checking Benchling availability...');
+    console.log('window.benchling exists:', !!window.benchling);
+
     // Tell Benchling the app is ready
-    if (window.benchling && window.benchling.ready) {
-      window.benchling.ready();
-      console.log('✅ Benchling SDK initialized');
+    if (window.benchling) {
+      console.log('Available Benchling methods:', Object.keys(window.benchling));
+
+      if (window.benchling.ready) {
+        console.log('📞 Calling benchling.ready()...');
+        window.benchling.ready();
+        console.log('✅ benchling.ready() called');
+      } else {
+        console.warn('⚠️ benchling.ready() not found');
+      }
     }
   }, []);
   // ===== END OF NEW CODE =====

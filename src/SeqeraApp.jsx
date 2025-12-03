@@ -15,9 +15,32 @@ const SeqeraApp = () => {
     seqeraApi: ''
   });
 
+    // ===== ADD THIS: Initialize Benchling SDK =====
+  useEffect(() => {
+    console.log('🔍 Checking Benchling availability...');
+    console.log('window.benchling exists:', !!window.benchling);
+
+    // Tell Benchling the app is ready
+    if (window.benchling) {
+      console.log('Available Benchling methods:', Object.keys(window.benchling));
+
+      if (window.benchling.ready) {
+        console.log('📞 Calling benchling.ready()...');
+        window.benchling.ready();
+        console.log('✅ benchling.ready() called');
+      } else {
+        console.warn('⚠️ benchling.ready() not found');
+      }
+    }
+  }, []);
+  // ===== END OF NEW CODE =====
+
   useEffect(() => {
     if (window.benchling) {
+      // Benchling environment
       window.benchling.getAppConfig().then(async (appConfig) => {
+        console.log('📋 Benchling config received:', appConfig);
+
         let workspaceId = null;
         if (appConfig.organizationName && appConfig.workspaceName) {
           workspaceId = await resolveWorkspaceId(
@@ -33,7 +56,28 @@ const SeqeraApp = () => {
           workspaceId: workspaceId,
           seqeraApi: appConfig.seqeraApi || 'https://api.cloud.seqera.io'
         });
+      }).catch(err => {
+        console.error('❌ Failed to get Benchling config:', err);
+        setError('Failed to load configuration from Benchling');
+        setLoading(false);
       });
+    } else {
+      // Non-Benchling environment (like App Runner)
+      // Option 1: Use environment variables
+      const seqeraToken = process.env.REACT_APP_SEQERA_TOKEN;
+      const workspaceId = process.env.REACT_APP_WORKSPACE_ID;
+      
+      if (seqeraToken && workspaceId) {
+        setConfig({
+          seqeraToken: seqeraToken,
+          workspaceId: workspaceId,
+          seqeraApi: 'https://api.cloud.seqera.io'
+        });
+      } else {
+        // Option 2: Show a configuration form
+        setError('Please configure your Seqera credentials');
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -110,8 +154,8 @@ const SeqeraApp = () => {
       }
 
       const apiUrl = window.location.hostname === 'localhost'
-        ? '/api'
-        : config.seqeraApi;
+        ? 'http://localhost:3001/api'
+        : '/api';
 
       const response = await fetch(
         `${apiUrl}/workflow?offset=0&max=25&workspaceId=${config.workspaceId}&attributes=labels,minimal`,

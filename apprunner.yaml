@@ -5,9 +5,16 @@ build:
     build:
       - echo "Installing dependencies..."
       - npm ci --only=production
+      - npm install
+      - npm run build
+  env:
+    - name: REACT_APP_SEQERA_TOKEN
+      value: "REPLACE_WITH_YOUR_SEQERA_TOKEN"
+    - name: REACT_APP_WORKSPACE_ID
+      value: "REPLACE_WITH_YOUR_WORKSPACE_ID"
 run:
   runtime-version: 22.17.0
-  command: npm start
+  command: node proxy-server.js
   network:
     port: 3000
     env: PORT
@@ -18,3 +25,7 @@ run:
       value: "3000"
     - name: AWS_REGION
       value: "eu-west-1"
+    - name: REACT_APP_SEQERA_TOKEN
+      value: "REPLACE_WITH_YOUR_SEQERA_TOKEN"
+    - name: REACT_APP_WORKSPACE_ID
+      value: "REPLACE_WITH_YOUR_WORKSPACE_ID"

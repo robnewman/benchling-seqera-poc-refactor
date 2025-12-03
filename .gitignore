@@ -1,8 +1,4 @@
-# Note: Environment variables are no longer used in this project
-# Configuration is managed through Benchling app manifest
-# These entries are kept for general React best practices
-
-# Environment variables
+# Environment variables (contains sensitive tokens and credentials)
 .env
 .env.local
 .env.development.local

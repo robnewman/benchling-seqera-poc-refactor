@@ -14,21 +14,26 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     
-    <!-- 
+    <!--
       LOCAL DEVELOPMENT MOCK
       Uncomment this section for local development only.
       IMPORTANT: Comment this out or remove before deploying to production!
+
+      To use: Copy .env.example to .env.local and fill in your values
     -->
+    <!--
     <script>
       // Mock Benchling API for local development
+      // Get values from your .env.local file
       window.benchling = {
         getAppConfig: () => Promise.resolve({
-          seqeraToken: 'eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw==',
-          organizationName: 'seqeralabs_robnewman_test',
-          workspaceName: 'studios_test',
+          seqeraToken: 'your-seqera-token-here',
+          organizationName: 'your-org-name',
+          workspaceName: 'your-workspace-name',
           seqeraApi: 'https://api.cloud.seqera.io'
         })
       };
     </script>
+    -->
   </body>
 </html>

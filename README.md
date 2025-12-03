@@ -35,30 +35,46 @@ cd benchling-seqera-poc-refactor
 npm install
 ```
 
-### 2. Configure for Local Development
+### 2. Configure Environment Variables
 
-The project includes [public/index.html](public/index.html) with a mock Benchling configuration for local testing.
+1. **Copy the example environment file**:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-**For local development:**
-1. Open [public/index.html](public/index.html)
-2. The mock `window.benchling` object is already uncommented
-3. Update the mock credentials with your Seqera values:
-   - **seqeraToken**: Your Seqera Platform API token
+2. **Edit `.env.local` and fill in your Seqera credentials**:
+   ```bash
+   REACT_APP_SEQERA_TOKEN=your-seqera-token-here
+   REACT_APP_WORKSPACE_ID=your-workspace-id-here
+   REACT_APP_ORGANIZATION_NAME=your-org-name
+   REACT_APP_WORKSPACE_NAME=your-workspace-name
+   ```
+
+   To get these values:
+   - **seqeraToken**: Seqera Platform → Settings → Your tokens
+   - **workspaceId**: From Seqera Platform UI URL or API
    - **organizationName**: Your Seqera organization name
    - **workspaceName**: Your Seqera workspace name
 
-```html
-<script>
-  window.benchling = {
-    getAppConfig: () => Promise.resolve({
-      seqeraToken: 'your-actual-token',
-      organizationName: 'your-org-name',
-      workspaceName: 'your-workspace-name',
-      seqeraApi: 'https://api.cloud.seqera.io'
-    })
-  };
-</script>
-```
+3. **For local development mock** (optional), uncomment the script in [public/index.html](public/index.html):
+   - Open [public/index.html](public/index.html)
+   - Uncomment the `window.benchling` mock object
+   - Update with your credentials from `.env.local`
+
+   ```html
+   <script>
+     window.benchling = {
+       getAppConfig: () => Promise.resolve({
+         seqeraToken: 'your-actual-token',
+         organizationName: 'your-org-name',
+         workspaceName: 'your-workspace-name',
+         seqeraApi: 'https://api.cloud.seqera.io'
+       })
+     };
+   </script>
+   ```
+
+**IMPORTANT**: Never commit `.env.local` or any file with real credentials to version control!
 
 ### 3. Start the Development Server
 
@@ -73,19 +89,27 @@ The app will open at `http://localhost:3000` and you should see your Seqera pipe
 
 **Note**: For local development with `npm start`, the React app runs on port 3000 and proxies API calls to port 3001 automatically.
 
-### 4. Remove the Mock Before Deploying
+### 4. Before Deploying to Production
 
-**CRITICAL**: Before deploying to production, comment out the mock in [public/index.html](public/index.html):
+**CRITICAL Security Checklist**:
 
-```html
-<!--
-<script>
-  window.benchling = { ... }
-</script>
--->
-```
+1. **Comment out the mock** in [public/index.html](public/index.html) (it should already be commented):
+   ```html
+   <!--
+   <script>
+     window.benchling = { ... }
+   </script>
+   -->
+   ```
 
-The real Benchling environment will provide the configuration automatically.
+2. **Verify `.env.local` is NOT committed** to version control:
+   ```bash
+   git status  # .env.local should not appear here
+   ```
+
+3. **Update [apprunner.yaml](apprunner.yaml)** with your production credentials if using AWS App Runner
+
+The real Benchling environment will provide the configuration automatically via `window.benchling.getAppConfig()`.
 
 ---
 
@@ -112,6 +136,8 @@ AWS App Runner configuration is included in [apprunner.yaml](apprunner.yaml).
      - name: REACT_APP_WORKSPACE_ID
        value: "your-workspace-id"
    ```
+
+   **IMPORTANT**: For production deployments, consider using AWS Secrets Manager or Parameter Store instead of hard-coding values in [apprunner.yaml](apprunner.yaml).
 
 2. **Build and deploy**:
    ```bash
@@ -245,9 +271,12 @@ benchling-seqera-poc-refactor/
 ### Local Development
 
 - **CORS errors**: The proxy server handles CORS. Make sure `npm start` is running.
-- **"Missing required configuration"**: Check that the mock in [public/index.html](public/index.html) is uncommented with valid credentials
-- **API errors**: Verify your Seqera token and credentials are correct
+- **"Missing required configuration"**:
+  - Check that `.env.local` exists with valid credentials
+  - OR uncomment the mock in [public/index.html](public/index.html) with valid credentials
+- **API errors**: Verify your Seqera token and credentials in `.env.local` are correct
 - **Port conflicts**: Make sure ports 3000 and 3001 are available
+- **Environment variables not loading**: Make sure you created `.env.local` (not just `.env`)
 
 ### Production Issues
 
@@ -269,13 +298,16 @@ benchling-seqera-poc-refactor/
 
 ## Security Best Practices
 
+- ✅ Use `.env.local` for local development credentials (automatically gitignored)
 - ✅ Use Benchling's secure configuration storage for tokens in production
 - ✅ Rotate API tokens periodically
 - ✅ Deploy to HTTPS endpoints only
-- ✅ Comment out mock credentials before committing to version control
-- ✅ Use environment variables for non-Benchling deployments
+- ✅ Comment out mock credentials in [public/index.html](public/index.html) before deploying
+- ✅ Use AWS Secrets Manager or similar for production environment variables
+- ✅ Always verify `.env.local` is not committed: `git status`
 - ❌ Never hard-code credentials in source code
-- ❌ Never commit tokens or secrets to version control
+- ❌ Never commit `.env.local`, `.env`, or any file with real tokens to version control
+- ❌ Never commit [apprunner.yaml](apprunner.yaml) with real production credentials
 
 ## Development
 

@@ -1,28 +1,29 @@
-# Benchling-Seqera Connect App
+# Benchling-Seqera Platform Integration
 
-A simple Benchling Connect app that integrates with Seqera Platform to display and launch Nextflow pipelines directly from Benchling.
+A Benchling Connect app that integrates with Seqera Platform to display and launch Nextflow pipelines directly from Benchling.
 
 ## Features
 
-- 📊 Display the number of available Nextflow pipelines in your workspace
-- 📋 List all pipelines with their details (name, repository, revision)
-- 🚀 Launch pipelines directly from Benchling with a single click
-- ✅ Real-time feedback on pipeline launch status
+- 📊 Display available Nextflow pipelines from your Seqera workspace
+- 📋 View pipeline details (name, repository, last updated)
+- 🚀 Launch pipelines directly in Seqera Platform with one click
+- 📈 View recent workflow runs with status, labels, and user information
+- 🔄 Relaunch workflows from the runs list
+- ✅ Status indicators with visual badges (succeeded, failed, cancelled)
+- ⭐ See starred runs at a glance
 
 ## Prerequisites
 
 - Node.js **v18 or higher** (required for native fetch support)
-- npm or yarn
+- npm
 - A Seqera Platform account with API access
 - A Benchling account with **Admin privileges** to register apps
-- A hosting service (Vercel, Netlify, AWS S3, etc.) to deploy your app
+- A hosting platform for deployment (AWS App Runner, Vercel, etc.)
 
-**Check your Node version:**
+Check your Node version:
 ```bash
 node --version  # Should be v18.0.0 or higher
 ```
-
-If you need to upgrade Node.js, visit [nodejs.org](https://nodejs.org/)
 
 ## Quick Start (Local Development)
 
@@ -30,41 +31,29 @@ If you need to upgrade Node.js, visit [nodejs.org](https://nodejs.org/)
 
 ```bash
 git clone <your-repo-url>
-cd benchling-seqera-app
+cd benchling-seqera-poc-refactor
 npm install
 ```
 
-**Note**: This will install React and all required dependencies defined in `package.json`.
+### 2. Configure for Local Development
 
-If you get a "Could not read package.json" error, make sure you have all these files in your project:
-- `package.json` (project dependencies)
-- `src/index.js` (React entry point)
-- `src/index.css` (base styles)
-- `src/SeqeraApp.jsx` (main component)
-- `public/index.html` (HTML template)
-
-### 2. Enable the Mock Benchling Configuration
-
-The project includes a `public/index.html` file with a commented-out mock configuration.
+The project includes [public/index.html](public/index.html) with a mock Benchling configuration for local testing.
 
 **For local development:**
-1. Open `public/index.html`
-2. Find the commented section at the bottom (between `<!-- LOCAL DEVELOPMENT MOCK -->`)
-3. **Uncomment** the `<script>` block
-4. Replace the placeholder values with your actual Seqera credentials:
-   - **seqeraToken**: Get from Seqera Platform → Settings → Your tokens
+1. Open [public/index.html](public/index.html)
+2. The mock `window.benchling` object is already uncommented
+3. Update the mock credentials with your Seqera values:
+   - **seqeraToken**: Your Seqera Platform API token
    - **organizationName**: Your Seqera organization name
    - **workspaceName**: Your Seqera workspace name
 
-**Example:**
 ```html
-<!-- Uncomment this block -->
 <script>
   window.benchling = {
     getAppConfig: () => Promise.resolve({
-      seqeraToken: 'eyJhbG...actual-token',
-      organizationName: 'my-company',
-      workspaceName: 'production',
+      seqeraToken: 'your-actual-token',
+      organizationName: 'your-org-name',
+      workspaceName: 'your-workspace-name',
       seqeraApi: 'https://api.cloud.seqera.io'
     })
   };
@@ -73,39 +62,21 @@ The project includes a `public/index.html` file with a commented-out mock config
 
 ### 3. Start the Development Server
 
-**Important**: You need to run TWO servers - the proxy and the React app.
+The app uses a single proxy server that handles both API proxying and serves the React app:
 
-**Terminal 1 - Start the proxy server:**
 ```bash
-npm install  # First time only - installs express and cors
-npm run proxy
-```
-This starts the proxy server on `http://localhost:3001` to handle Seqera API requests and avoid CORS errors.
-
-You should see:
-```
-Proxy server running on http://localhost:3001
-Forwarding requests to https://api.cloud.seqera.io
-Node version: v18.x.x (or higher)
-```
-
-**Note**: The proxy uses Node.js native `fetch` (available in Node 18+). If you see "fetch is not defined", upgrade Node.js.
-
-**Terminal 2 - Start the React app:**
-```bash
+# Start the integrated proxy and React dev server
 npm start
 ```
 
-The app will open at `http://localhost:3000` and you should see your Seqera pipelines!
+The app will open at `http://localhost:3000` and you should see your Seqera pipelines and recent runs.
+
+**Note**: For local development with `npm start`, the React app runs on port 3000 and proxies API calls to port 3001 automatically.
 
 ### 4. Remove the Mock Before Deploying
 
-**CRITICAL**: Before deploying to production:
-1. Open `public/index.html`
-2. **Comment out** or remove the mock `window.benchling` script
-3. The real Benchling environment will provide this automatically
+**CRITICAL**: Before deploying to production, comment out the mock in [public/index.html](public/index.html):
 
-The mock should be commented out like this:
 ```html
 <!--
 <script>
@@ -114,303 +85,220 @@ The mock should be commented out like this:
 -->
 ```
 
+The real Benchling environment will provide the configuration automatically.
+
 ---
 
-## Production Setup Instructions
+## Production Deployment
 
-### 2. Get Your Seqera Credentials (for local testing and production)
+### Architecture
 
-#### Seqera API Token:
-1. Log into Seqera Platform
-2. Navigate to **Settings** → **Your tokens**
-3. Create a new token or copy an existing one
-4. Save this token for the manifest configuration
+The app consists of:
+- A React frontend that displays pipelines and runs
+- A Node.js Express proxy server that forwards requests to Seqera API (handles CORS)
+- Benchling lifecycle endpoints for app installation/validation
 
-#### Organization and Workspace Names:
-1. Open Seqera Platform
-2. Note your **organization name** (shown in the organization selector or URL)
-3. Note your **workspace name** (shown in the workspace UI)
-4. Save both names for the manifest configuration
-5. The app will automatically resolve these to the internal workspace ID
+### Deployment Options
 
-**Note**: The workDir (S3 work directory) is already configured in your Seqera Compute Environment, so you don't need to specify it in the app configuration.
+#### Option 1: AWS App Runner (Recommended)
 
-### 3. Create the App Manifest (for reference)
+AWS App Runner configuration is included in [apprunner.yaml](apprunner.yaml).
 
-Create a `manifest.yaml` file in your project root (this is for reference when setting up in Benchling UI):
+1. **Update [apprunner.yaml](apprunner.yaml) with your credentials**:
+   ```yaml
+   env:
+     - name: REACT_APP_SEQERA_TOKEN
+       value: "your-seqera-token"
+     - name: REACT_APP_WORKSPACE_ID
+       value: "your-workspace-id"
+   ```
 
-```yaml
-name: seqera-pipeline-launcher
-version: 1.0.0
-description: Launch Nextflow pipelines from Seqera Platform
-icon: https://your-domain.com/icon.png
-
-# App configuration - these are securely stored by Benchling
-appConfig:
-  seqeraToken:
-    type: secret
-    description: Your Seqera Platform API token
-    required: true
-  
-  organizationName:
-    type: string
-    description: Your Seqera organization name
-    required: true
-  
-  workspaceName:
-    type: string
-    description: Your Seqera workspace name
-    required: true
-  
-  seqeraApi:
-    type: string
-    description: Seqera API endpoint
-    default: https://api.cloud.seqera.io
-    required: false
-  
-  workDir:
-    type: string
-    description: S3 work directory for pipeline execution
-    default: s3://your-bucket/work
-    required: false
-
-# App canvas configuration
-canvas:
-  - type: iframe
-    url: https://your-app-url.com
-    height: 800px
-```
-
-### 4. Register and Configure the App in Benchling
-
-1. **Build your app for production:**
+2. **Build and deploy**:
    ```bash
    npm run build
    ```
 
-2. **Deploy to a hosting service:**
-   - Deploy the `build/` folder to your hosting platform (Vercel, Netlify, AWS S3, etc.)
-   - Note the deployed URL (e.g., `https://your-app.vercel.app`)
+3. **Deploy to AWS App Runner** using the AWS Console or CLI
 
-3. **Register the app in Benchling:**
-   - Log into your Benchling tenant as an admin
-   - Navigate to **Settings** → **Feature Settings** → **Apps**
-   - Click **Create App** or **Register New App**
-   - Fill in the app details:
-     - **Name**: Seqera Pipeline Launcher
-     - **Description**: Launch Nextflow pipelines from Seqera Platform
-     - **App URL**: Your deployed app URL
-     - **Icon**: (Optional) Upload an icon
+4. **Note your App Runner URL** (e.g., `https://xyz.us-east-1.awsapprunner.com`)
 
-4. **Configure the app settings:**
-   - In the app settings page, add the configuration fields:
-     - **Seqera Token** (secret field) - Your API token
-     - **Organization Name** (text field) - Your org name
-     - **Workspace Name** (text field) - Your workspace name
-     - **Seqera API** (text field, optional) - API endpoint (defaults to cloud)
-   - Enter your actual values
-   - Click **Save**
+#### Option 2: Other Platforms (Vercel, Netlify, etc.)
 
-### 5. Install the App in Your Workspace
-
-1. Navigate to your Benchling workspace
-2. Go to **Apps** in the left sidebar
-3. Find **Seqera Pipeline Launcher** in available apps
-4. Click **Install** or **Add to Workspace**
-5. The app will now appear in your workspace's app canvas
-
-## How Configuration Works
-
-### App Registration via Benchling UI
-Benchling Connect apps are registered and configured through the Benchling Admin UI, not via CLI:
-
-1. **Admin registers the app** in Benchling Settings
-2. **Configuration fields** are defined in the app settings page
-3. **Admins enter values** securely through the UI
-4. **Benchling stores and encrypts** sensitive values like API tokens
-
-### Runtime Access
-```javascript
-// Your app code accesses configuration via the Benchling API
-window.benchling.getAppConfig().then(async (appConfig) => {
-  const token = appConfig.seqeraToken;           // Securely retrieved from Benchling
-  const orgName = appConfig.organizationName;    // From admin configuration
-  const workspaceName = appConfig.workspaceName; // From admin configuration
-  
-  // App automatically resolves workspace ID from org and workspace names
-  const workspaceId = await resolveWorkspaceId(token, orgName, workspaceName);
-  
-  // workDir is not needed - it's already configured in the Compute Environment
-});
-```
-
-### Benefits of This Approach
-- ✅ No credentials in source code or environment files
-- ✅ Secure, encrypted storage by Benchling
-- ✅ Easy to update configuration without redeploying
-- ✅ Different configs per Benchling tenant/environment
-- ✅ Access control managed by Benchling permissions
-- ✅ Use human-readable org and workspace names instead of IDs
-- ✅ Workspace ID automatically resolved at runtime
-
-## Manifest Configuration Reference
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `seqeraToken` | secret | Yes | Your Seqera Platform API token (encrypted) |
-| `organizationName` | string | Yes | Your Seqera organization name |
-| `workspaceName` | string | Yes | Your Seqera workspace name |
-| `seqeraApi` | string | No | Seqera API endpoint (defaults to cloud) |
-
-**Note**: The workDir is not included as it's already configured in your Seqera Compute Environment.
-
-## CORS and Proxy Setup
-
-### Why You Need a Proxy
-
-The Seqera API doesn't allow direct browser requests due to CORS (Cross-Origin Resource Sharing) restrictions. In local development, we use a simple Node.js proxy server to forward requests.
-
-### How It Works
-
-1. **Local Development**: React app → Proxy server (localhost:3001) → Seqera API
-2. **Production (Benchling)**: React app → Seqera API (CORS handled by Benchling's backend)
-
-### Running the Proxy
-
-```bash
-# Terminal 1: Start the proxy
-npm run proxy
-
-# Terminal 2: Start the React app
-npm start
-```
-
-The proxy server (`proxy-server.js`) forwards all `/api/*` requests to Seqera's API with proper authentication headers.
-
-## Local Development
-
-The project includes `public/index.html` with a pre-configured mock that's commented out by default.
-
-**To enable local development:**
-
-1. **Uncomment the mock in `public/index.html`** (add your credentials)
-
-2. **Run BOTH servers in separate terminals:**
+1. **Build the app**:
    ```bash
-   # Terminal 1
-   npm run proxy
-   
-   # Terminal 2  
-   npm start
+   npm run build
    ```
 
-3. **Test your changes** at `http://localhost:3000`
+2. **Deploy the build folder** to your hosting platform
 
-4. **Before deploying, comment out the mock again!**
+3. **Set environment variables** (if not using Benchling config):
+   - `REACT_APP_SEQERA_TOKEN`
+   - `REACT_APP_WORKSPACE_ID`
 
-### Troubleshooting Local Development
+### Register the App in Benchling
 
-- **CORS errors**: 
-  - Make sure the proxy server is running (`npm run proxy`)
-  - Check proxy terminal for error messages
-  - Verify proxy is on port 3001: `http://localhost:3001`
-- **"Missing required configuration"**: Check that the mock in `index.html` is uncommented
-- **API errors**: Verify your Seqera token and credentials are correct in the mock
-- **Connection refused**: Ensure proxy server is running on port 3001
-- **Port already in use**: Stop other services on ports 3000 or 3001
-- **Proxy errors**: Check the proxy terminal for detailed error logs
-- Check the browser console and proxy terminal for error messages
+1. **Create [manifest.yml](manifest.yml)** (already included) with your app details
 
-## Updating Configuration
+2. **Upload manifest to Benchling**:
+   - Log into Benchling as an admin
+   - Navigate to **Settings** → **Feature Settings** → **Developer Console** → **Apps**
+   - Create a new app and upload the manifest
+   - Or use the Benchling CLI if available
 
-To update credentials or settings:
+3. **Configure app settings** in Benchling:
+   - **seqeraToken**: Your Seqera Platform API token
+   - **organizationName**: Your Seqera organization name
+   - **workspaceName**: Your Seqera workspace name
+   - **seqeraApi**: API endpoint (default: `https://api.cloud.seqera.io`)
 
-1. Log into Benchling as an admin
-2. Navigate to **Settings** → **Feature Settings** → **Apps**
-3. Find **Seqera Pipeline Launcher**
-4. Click **Configure** or **Edit Settings**
-5. Update the values (e.g., new API token)
-6. Click **Save**
+4. **Add Canvas URL** to your Benchling app configuration:
+   - Set the iframe URL to your deployed app URL
 
-Changes take effect immediately - users just need to refresh the app.
+5. **Install the app** in your Benchling workspace
 
-## Security Best Practices
+## How It Works
 
-- ✅ **DO**: Register and configure apps through Benchling Admin UI
-- ✅ **DO**: Use Benchling's built-in secret fields for API tokens
-- ✅ **DO**: Restrict app configuration access to admins only
-- ✅ **DO**: Rotate API tokens periodically via Benchling settings
-- ✅ **DO**: Deploy your app to a secure HTTPS endpoint
-- ❌ **DON'T**: Hard-code credentials in source code
-- ❌ **DON'T**: Store credentials in environment files
-- ❌ **DON'T**: Commit the mock Benchling object to version control
-- ❌ **DON'T**: Share admin credentials with non-admin users
+### Configuration Resolution
 
-## Troubleshooting
+The app supports two configuration methods:
 
-### "Missing required configuration" error
-- Verify app configuration is set in Benchling Admin UI (**Settings** → **Apps**)
-- Check that all required fields are populated
-- Ensure the app has been properly installed in your Benchling workspace
+1. **Benchling Environment** (Production):
+   - Configuration is provided by Benchling via `window.benchling.getAppConfig()`
+   - Workspace ID is automatically resolved from organization and workspace names
+   - Uses Benchling's secure configuration storage
 
-### "API error: 401" or authentication issues
-- Verify your Seqera token is correct in Benchling app settings
-- Check that the token hasn't expired
-- Update the token in Benchling Admin UI if needed
+2. **Non-Benchling Environment** (Testing):
+   - Falls back to environment variables:
+     - `REACT_APP_SEQERA_TOKEN`
+     - `REACT_APP_WORKSPACE_ID`
 
-### "Organization not found" or "Workspace not found"
-- Verify the organization name and workspace name are correct (case-sensitive)
-- Check for typos in Benchling app configuration
-- Ensure your token has access to the specified organization and workspace
-- Try accessing Seqera Platform directly to confirm the names
+### API Proxy
 
-### "window.benchling is undefined"
-- This is normal in local development - add the mock object (see below)
-- In production, ensure the app is loaded within Benchling's iframe context
-- Check that your app URL is correctly configured in Benchling
+The app includes a proxy server ([proxy-server.js](proxy-server.js)) that:
+- Forwards API requests to Seqera Platform
+- Handles CORS restrictions
+- Adds authentication headers
+- Serves the built React app
+- Provides Benchling lifecycle endpoints (`/lifecycle`, `/validate`, `/health`)
 
-### Configuration not updating
-- Configuration changes may be cached - refresh the Benchling page
-- Verify changes were saved in Benchling Admin UI
-- Check browser console for any errors
-- Try logging out and back into Benchling
+**Local Development**: React app on port 3000 → Proxy on port 3001 → Seqera API
+
+**Production**: Single server on port 3000 handles both app and API requests
+
+### Benchling Lifecycle Endpoints
+
+The proxy server implements Benchling Connect app lifecycle endpoints:
+
+- **POST /lifecycle**: Handles app installation/update/uninstall events
+- **POST /validate**: Validates configuration when admins update settings
+- **GET /health**: Health check endpoint for monitoring
+
+### Features
+
+#### Pipeline Management
+- Lists all pipelines in the configured workspace
+- Shows pipeline name, repository, and last updated date
+- Launch pipelines directly in Seqera Platform (opens in new tab)
+- Displays pipeline icons (when available)
+
+#### Workflow Runs
+- Displays recent workflow runs (last 25)
+- Shows run name, project, labels, user, and submission time
+- Visual status indicators (succeeded, failed, cancelled)
+- Time since submission
+- Starred runs indicator
+- Relaunch workflows with one click
 
 ## Project Structure
 
 ```
-benchling-seqera-app/
+benchling-seqera-poc-refactor/
 ├── public/
-│   └── index.html          # HTML template with commented mock
+│   └── index.html              # HTML template with mock config for local dev
 ├── src/
-│   ├── index.js            # React entry point
-│   ├── index.css           # Base styles
-│   └── SeqeraApp.jsx       # Main app component
-├── proxy-server.js         # Local development proxy to avoid CORS
-├── manifest.yaml           # Reference for Benchling app configuration
-├── package.json            # Project dependencies and scripts
-├── .env.example            # Deprecated - kept for reference only
-├── .gitignore             # Git ignore file
-└── README.md              # This file
+│   ├── index.js                # React entry point
+│   ├── index.css               # Styles for tables and status indicators
+│   └── SeqeraApp.jsx           # Main React component (pipelines + runs)
+├── proxy-server.js             # Express proxy server + Benchling endpoints
+├── manifest.yml                # Benchling app manifest
+├── apprunner.yaml              # AWS App Runner configuration
+├── package.json                # Dependencies and scripts
+└── README.md                   # This file
 ```
 
-**Note**: `.env` files are no longer used. All configuration is managed through Benchling's Admin UI.
+## Configuration Reference
 
-## Benchling Resources
+### manifest.yml Fields
 
-- [Benchling Apps Overview](https://docs.benchling.com/docs/apps-overview)
-- [Building Apps for Benchling](https://docs.benchling.com/docs/building-apps)
-- [App Configuration Guide](https://docs.benchling.com/docs/app-configuration)
-- [Benchling JavaScript SDK](https://docs.benchling.com/docs/benchling-sdk)
-- [App Canvas Documentation](https://docs.benchling.com/docs/app-canvas)
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `seqeraToken` | text | Yes | Your Seqera Platform API token |
+| `workspaceId` | text | No | Direct workspace ID (optional if using org/workspace names) |
+| `organizationName` | text | No | Seqera organization name (alternative to workspaceId) |
+| `workspaceName` | text | No | Seqera workspace name (alternative to workspaceId) |
+| `seqeraApi` | text | No | API endpoint URL (defaults to cloud) |
 
-## Contributing
+**Note**: Either provide `workspaceId` directly OR provide both `organizationName` and `workspaceName`.
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test locally with mock Benchling object
-5. Remove mock before committing
-6. Submit a pull request
+## Troubleshooting
+
+### Local Development
+
+- **CORS errors**: The proxy server handles CORS. Make sure `npm start` is running.
+- **"Missing required configuration"**: Check that the mock in [public/index.html](public/index.html) is uncommented with valid credentials
+- **API errors**: Verify your Seqera token and credentials are correct
+- **Port conflicts**: Make sure ports 3000 and 3001 are available
+
+### Production Issues
+
+- **"Missing required configuration"**: Verify app configuration in Benchling Admin UI
+- **API error: 401**: Check that Seqera token is correct and not expired
+- **"Organization not found" or "Workspace not found"**: Verify org/workspace names are correct (case-sensitive)
+- **"window.benchling is undefined"**:
+  - In local dev: Add the mock object in [public/index.html](public/index.html)
+  - In production: Ensure app is loaded within Benchling's iframe context
+- **Configuration not updating**: Clear cache and refresh Benchling
+
+### Common Issues
+
+1. **Icons not showing**: Icons use Seqera's authentication and may not work in localhost. They work in production when deployed.
+
+2. **Workspace ID resolution fails**: Make sure your token has access to the specified organization and workspace.
+
+3. **Build errors**: Ensure you're using Node.js v18 or higher.
+
+## Security Best Practices
+
+- ✅ Use Benchling's secure configuration storage for tokens in production
+- ✅ Rotate API tokens periodically
+- ✅ Deploy to HTTPS endpoints only
+- ✅ Comment out mock credentials before committing to version control
+- ✅ Use environment variables for non-Benchling deployments
+- ❌ Never hard-code credentials in source code
+- ❌ Never commit tokens or secrets to version control
+
+## Development
+
+### Available Scripts
+
+- `npm start`: Start development server (runs React + proxy)
+- `npm run build`: Build for production
+- `npm test`: Run tests
+- `npm run proxy`: Run proxy server only (for debugging)
+
+### Making Changes
+
+1. Edit [src/SeqeraApp.jsx](src/SeqeraApp.jsx) for UI changes
+2. Edit [proxy-server.js](proxy-server.js) for API or Benchling lifecycle changes
+3. Edit [manifest.yml](manifest.yml) for Benchling app configuration changes
+4. Test locally with `npm start`
+5. Build with `npm run build` and deploy
+
+## Resources
+
+- [Benchling Apps Documentation](https://docs.benchling.com/docs/apps-overview)
+- [Seqera Platform API Documentation](https://docs.seqera.io/platform/latest/api/overview)
+- [Benchling Connect Developer Guide](https://docs.benchling.com/docs/building-apps)
 
 ## License
 
@@ -418,7 +306,7 @@ MIT License - feel free to use and modify as needed.
 
 ## Support
 
-For issues related to:
-- **Seqera Platform**: Contact Seqera support or check their documentation
-- **Benchling Connect**: Refer to Benchling's developer documentation
-- **This app**: Open an issue in the GitHub repository
+For issues or questions:
+- **Seqera Platform**: Contact Seqera support
+- **Benchling Connect**: Refer to Benchling developer documentation
+- **This app**: Open an issue in the repository

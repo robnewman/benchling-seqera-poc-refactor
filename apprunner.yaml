@@ -3,7 +3,7 @@ runtime: nodejs22
 build:
   commands:
     build:
-      - echo "Installing dependencies..."
+      - echo "Installing dependencies...."
       - npm ci --only=production
       - npm install
       - npm run build

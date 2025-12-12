@@ -9,9 +9,9 @@ build:
       - npm run build
   env:
     - name: REACT_APP_SEQERA_TOKEN
-      value: "REPLACE_WITH_YOUR_SEQERA_TOKEN"
+      value: "eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw=="
     - name: REACT_APP_WORKSPACE_ID
-      value: "REPLACE_WITH_YOUR_WORKSPACE_ID"
+      value: "73343830402249"
 run:
   runtime-version: 22.17.0
   command: node proxy-server.js

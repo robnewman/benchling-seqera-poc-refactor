@@ -26,6 +26,6 @@ run:
     - name: AWS_REGION
       value: "eu-west-1"
     - name: REACT_APP_SEQERA_TOKEN
-      value: "REPLACE_WITH_YOUR_SEQERA_TOKEN"
+      value: "eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw=="
     - name: REACT_APP_WORKSPACE_ID
-      value: "REPLACE_WITH_YOUR_WORKSPACE_ID"
+      value: "73343830402249"

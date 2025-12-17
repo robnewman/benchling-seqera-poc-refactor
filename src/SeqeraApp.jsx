@@ -15,25 +15,37 @@ const SeqeraApp = () => {
     seqeraApi: ''
   });
 
-    // ===== ADD THIS: Initialize Benchling SDK =====
   useEffect(() => {
-    console.log('🔍 Checking Benchling availability...');
-    console.log('window.benchling exists:', !!window.benchling);
-
-    // Tell Benchling the app is ready
     if (window.benchling) {
-      console.log('Available Benchling methods:', Object.keys(window.benchling));
+      window.benchling.getAppConfig().then(async (appConfig) => {
+        console.log('📋 Benchling config received:', appConfig);
+        
+        let workspaceId = appConfig.workspaceId;
+        
+        if (!workspaceId && appConfig.organizationName && appConfig.workspaceName) {
+          workspaceId = await resolveWorkspaceId(
+            appConfig.seqeraToken,
+            appConfig.seqeraApi || 'https://api.cloud.seqera.io',
+            appConfig.organizationName,
+            appConfig.workspaceName
+          );
+        }
 
-      if (window.benchling.ready) {
-        console.log('📞 Calling benchling.ready()...');
-        window.benchling.ready();
-        console.log('✅ benchling.ready() called');
-      } else {
-        console.warn('⚠️ benchling.ready() not found');
-      }
+        setConfig({
+          seqeraToken: appConfig.seqeraToken,
+          workspaceId: workspaceId,
+          seqeraApi: appConfig.seqeraApi || 'https://api.cloud.seqera.io'
+        });
+      }).catch(err => {
+        console.error('Failed to get Benchling config:', err);
+        setError('Failed to load configuration from Benchling');
+        setLoading(false);
+      });
+    } else {
+      setError('This app must be used within Benchling');
+      setLoading(false);
     }
   }, []);
-  // ===== END OF NEW CODE =====
 
   useEffect(() => {
     if (window.benchling) {

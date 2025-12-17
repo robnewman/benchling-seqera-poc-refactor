@@ -3,29 +3,9 @@ runtime: nodejs22
 build:
   commands:
     build:
-      - echo "Installing dependencies..."
-      - npm ci --only=production
       - npm install
       - npm run build
-  env:
-    - name: REACT_APP_SEQERA_TOKEN
-      value: "eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw=="
-    - name: REACT_APP_WORKSPACE_ID
-      value: "73343830402249"
 run:
-  runtime-version: 22.17.0
   command: node proxy-server.js
   network:
     port: 3000
-    env: PORT
-  env:
-    - name: NODE_ENV
-      value: "production"
-    - name: PORT
-      value: "3000"
-    - name: AWS_REGION
-      value: "eu-west-1"
-    - name: REACT_APP_SEQERA_TOKEN
-      value: "eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw=="
-    - name: REACT_APP_WORKSPACE_ID
-      value: "73343830402249"

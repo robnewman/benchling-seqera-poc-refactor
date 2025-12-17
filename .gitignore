@@ -17,6 +17,9 @@ node_modules/
 # Testing
 /coverage
 
+# Build
+/build
+
 # Misc
 .DS_Store
 *.log

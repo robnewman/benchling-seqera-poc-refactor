@@ -9,83 +9,51 @@ app.use(express.json());
 
 const SEQERA_API = 'https://api.cloud.seqera.io';
 
-// ===== BENCHLING LIFECYCLE ENDPOINTS =====
-
-// Lifecycle endpoint - Benchling calls this when app is installed/updated
+// Benchling lifecycle endpoints
 app.post('/lifecycle', (req, res) => {
-  console.log('📱 Lifecycle event received:', req.body);
-  
-  const event = req.body;
-  
-  switch(event.type) {
-    case 'app.installed':
-      console.log('✅ App installed:', event);
-      break;
-    case 'app.uninstalled':
-      console.log('❌ App uninstalled:', event);
-      break;
-    case 'app.updated':
-      console.log('🔄 App updated:', event);
-      break;
-    default:
-      console.log('❓ Unknown lifecycle event:', event.type);
-  }
-  
-  // Always return 200 to acknowledge receipt
+  console.log('📱 Lifecycle event:', req.body);
   res.status(200).json({ success: true });
 });
 
-// Health check endpoint (Benchling may call this)
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy' });
 });
 
-// Benchling config validation endpoint (optional but recommended)
-app.post('/validate', (req, res) => {
-  console.log('🔍 Config validation requested:', req.body);
-  
-  const config = req.body;
-  const errors = [];
-  
-  // Validate seqeraToken
-  if (!config.seqeraToken || config.seqeraToken.trim() === '') {
-    errors.push({ field: 'seqeraToken', message: 'Seqera API Token is required' });
-  }
-  
-  // Validate workspaceId OR org/workspace names
-  if (!config.workspaceId && (!config.organizationName || !config.workspaceName)) {
-    errors.push({ 
-      field: 'workspaceId', 
-      message: 'Either Workspace ID or Organization/Workspace names are required' 
+// Image proxy
+app.get('/image/*', async (req, res) => {
+  try {
+    const imagePath = req.path.replace('/image', '');
+    const url = `${SEQERA_API}${imagePath}`;
+    const token = req.query.token;
+    
+    if (!token) return res.status(401).send('Missing token');
+
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
+
+    if (!response.ok) return res.status(response.status).send('Image fetch failed');
+
+    const contentType = response.headers.get('content-type');
+    const imageBuffer = await response.arrayBuffer();
+    
+    res.set('Content-Type', contentType);
+    res.send(Buffer.from(imageBuffer));
+  } catch (error) {
+    console.error('Image proxy error:', error);
+    res.status(500).send('Image proxy error');
   }
-  
-  if (errors.length > 0) {
-    return res.status(400).json({ valid: false, errors });
-  }
-  
-  res.status(200).json({ valid: true });
 });
 
-// ===== EXISTING PROXY ENDPOINTS =====
-
-// Proxy all Seqera API requests
+// API proxy
 app.all('/api/*', async (req, res) => {
   try {
     const seqeraPath = req.path.replace('/api', '');
     const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
     const url = `${SEQERA_API}${seqeraPath}${queryString}`;
     
-    console.log(`\n📤 Proxying ${req.method} ${url}`);
-    
     const token = req.headers['x-seqera-token'];
-    if (!token) {
-      console.error('❌ Missing Seqera token');
-      console.error('📋 Available headers:', Object.keys(req.headers));
-      return res.status(401).json({ error: 'Missing Seqera token' });
-    }
-
-    console.log(`🔑 Using token: ${token.substring(0, 20)}...`);
+    if (!token) return res.status(401).json({ error: 'Missing token' });
 
     const options = {
       method: req.method,
@@ -98,55 +66,31 @@ app.all('/api/*', async (req, res) => {
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       options.body = JSON.stringify(req.body);
-      console.log(`📦 Request body:`, req.body);
     }
 
-    console.log(`📡 Sending request to Seqera...`);
     const response = await fetch(url, options);
     const contentType = response.headers.get('content-type');
     
-    console.log(`📥 Response status: ${response.status} ${response.statusText}`);
-    console.log(`📋 Response content-type: ${contentType}`);
-    
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
-      
-      if (!response.ok) {
-        console.error(`❌ Error response:`, JSON.stringify(data, null, 2));
-      } else {
-        console.log(`✅ Success - returned ${JSON.stringify(data).length} bytes`);
-      }
-      
       return res.status(response.status).json(data);
     } else {
       const text = await response.text();
-      
-      if (!response.ok) {
-        console.error(`❌ Error response (text):`, text);
-      }
-      
       return res.status(response.status).send(text);
     }
   } catch (error) {
-    console.error('❌ Proxy error:', error);
-    return res.status(500).json({ 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.error('Proxy error:', error);
+    return res.status(500).json({ error: error.message });
   }
 });
 
-// Serve React app for all other routes (MUST BE LAST)
+// Static files and catch-all
+app.use(express.static(path.join(__dirname, 'build')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-// Serve static files from React build
-app.use(express.static(path.join(__dirname, 'build')));
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🚀 Proxy server running on port ${PORT}`);
-  console.log(`📡 Forwarding requests to ${SEQERA_API}`);
-  console.log(`🔧 Node version: ${process.version}\n`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

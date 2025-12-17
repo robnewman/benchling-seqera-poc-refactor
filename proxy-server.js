@@ -7,9 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from React build
-app.use(express.static(path.join(__dirname, 'build')));
-
 const SEQERA_API = 'https://api.cloud.seqera.io';
 
 // ===== BENCHLING LIFECYCLE ENDPOINTS =====
@@ -143,6 +140,9 @@ app.all('/api/*', async (req, res) => {
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
+
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, 'build')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {

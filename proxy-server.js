@@ -9,14 +9,19 @@ app.use(express.json());
 
 const SEQERA_API = 'https://api.cloud.seqera.io';
 
-// Benchling lifecycle endpoints
-app.post('/lifecycle', (req, res) => {
-  console.log('📱 Lifecycle event:', req.body);
-  res.status(200).json({ success: true });
-});
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' });
+// Config endpoint - MUST be before static files
+app.get('/config', (req, res) => {
+  console.log('📋 Config requested');
+  const config = {
+    seqeraToken: process.env.SEQERA_TOKEN || '',
+    workspaceId: process.env.WORKSPACE_ID || '',
+    seqeraApi: 'https://api.cloud.seqera.io'
+  };
+  console.log('Returning config:', { 
+    hasToken: !!config.seqeraToken, 
+    hasWorkspace: !!config.workspaceId 
+  });
+  res.json(config);
 });
 
 // Image proxy
@@ -32,7 +37,7 @@ app.get('/image/*', async (req, res) => {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
-    if (!response.ok) return res.status(response.status).send('Image fetch failed');
+    if (!response.ok) return res.status(response.status).send('Failed');
 
     const contentType = response.headers.get('content-type');
     const imageBuffer = await response.arrayBuffer();
@@ -40,8 +45,7 @@ app.get('/image/*', async (req, res) => {
     res.set('Content-Type', contentType);
     res.send(Buffer.from(imageBuffer));
   } catch (error) {
-    console.error('Image proxy error:', error);
-    res.status(500).send('Image proxy error');
+    res.status(500).send('Error');
   }
 });
 
@@ -79,18 +83,23 @@ app.all('/api/*', async (req, res) => {
       return res.status(response.status).send(text);
     }
   } catch (error) {
-    console.error('Proxy error:', error);
     return res.status(500).json({ error: error.message });
   }
 });
 
-// Static files and catch-all
+// Static files - AFTER all API routes
 app.use(express.static(path.join(__dirname, 'build')));
+
+// Catch-all - MUST be last
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server on port ${PORT}`);
+  console.log('Env check:', {
+    token: !!process.env.SEQERA_TOKEN,
+    workspace: !!process.env.WORKSPACE_ID
+  });
 });

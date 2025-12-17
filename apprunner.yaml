@@ -9,3 +9,8 @@ run:
   command: node proxy-server.js
   network:
     port: 3000
+  env:
+    - name: SEQERA_TOKEN
+      value: "eyJ0aWQiOiAxMzA4MX0uMWEwMjU3ZWNiMGJkODU2ZjhiMjgzYTg2MDhhOWY0NTZjNjlhNzQ1Mw=="
+    - name: WORKSPACE_ID
+      value: "73343830402249"

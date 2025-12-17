@@ -15,83 +15,35 @@ const SeqeraApp = () => {
     seqeraApi: ''
   });
 
-  useEffect(() => {
-    if (window.benchling) {
-      window.benchling.getAppConfig().then(async (appConfig) => {
-        console.log('📋 Benchling config received:', appConfig);
-        
-        let workspaceId = appConfig.workspaceId;
-        
-        if (!workspaceId && appConfig.organizationName && appConfig.workspaceName) {
-          workspaceId = await resolveWorkspaceId(
-            appConfig.seqeraToken,
-            appConfig.seqeraApi || 'https://api.cloud.seqera.io',
-            appConfig.organizationName,
-            appConfig.workspaceName
-          );
-        }
-
-        setConfig({
-          seqeraToken: appConfig.seqeraToken,
-          workspaceId: workspaceId,
-          seqeraApi: appConfig.seqeraApi || 'https://api.cloud.seqera.io'
-        });
-      }).catch(err => {
-        console.error('Failed to get Benchling config:', err);
-        setError('Failed to load configuration from Benchling');
-        setLoading(false);
+ useEffect(() => {
+  // Fetch config from server
+  const configUrl = window.location.hostname === 'localhost'
+    ? 'http://localhost:3001/config'
+    : '/config';
+  
+  console.log('Fetching config from:', configUrl);
+  
+  fetch(configUrl)
+    .then(res => res.json())
+    .then(serverConfig => {
+      console.log('Config received:', {
+        hasToken: !!serverConfig.seqeraToken,
+        hasWorkspace: !!serverConfig.workspaceId
       });
-    } else {
-      setError('This app must be used within Benchling');
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (window.benchling) {
-      // Benchling environment
-      window.benchling.getAppConfig().then(async (appConfig) => {
-        console.log('📋 Benchling config received:', appConfig);
-
-        let workspaceId = null;
-        if (appConfig.organizationName && appConfig.workspaceName) {
-          workspaceId = await resolveWorkspaceId(
-            appConfig.seqeraToken,
-            appConfig.seqeraApi || 'https://api.cloud.seqera.io',
-            appConfig.organizationName,
-            appConfig.workspaceName
-          );
-        }
-
-        setConfig({
-          seqeraToken: appConfig.seqeraToken,
-          workspaceId: workspaceId,
-          seqeraApi: appConfig.seqeraApi || 'https://api.cloud.seqera.io'
-        });
-      }).catch(err => {
-        console.error('❌ Failed to get Benchling config:', err);
-        setError('Failed to load configuration from Benchling');
-        setLoading(false);
-      });
-    } else {
-      // Non-Benchling environment (like App Runner)
-      // Option 1: Use environment variables
-      const seqeraToken = process.env.REACT_APP_SEQERA_TOKEN;
-      const workspaceId = process.env.REACT_APP_WORKSPACE_ID;
       
-      if (seqeraToken && workspaceId) {
-        setConfig({
-          seqeraToken: seqeraToken,
-          workspaceId: workspaceId,
-          seqeraApi: 'https://api.cloud.seqera.io'
-        });
+      if (serverConfig.seqeraToken && serverConfig.workspaceId) {
+        setConfig(serverConfig);
       } else {
-        // Option 2: Show a configuration form
-        setError('Please configure your Seqera credentials');
+        setError('Missing configuration - set SEQERA_TOKEN and WORKSPACE_ID');
         setLoading(false);
       }
-    }
-  }, []);
+    })
+    .catch(err => {
+      console.error('Config error:', err);
+      setError(`Configuration error: ${err.message}`);
+      setLoading(false);
+    });
+}, []); 
 
   useEffect(() => {
     if (config.seqeraToken && config.workspaceId) {
